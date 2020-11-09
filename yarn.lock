@@ -209,11 +209,6 @@
   resolved "https://registry.npmjs.org/@istanbuljs/schema/-/schema-0.1.2.tgz#26520bf09abe4a5644cd5414e37125a8954241dd"
   integrity sha512-tsAQNx32a8CoFhjhijUIhI4kccIAgmGhy8LZMZgGfmXcpMbPRUqn5LWmgRttILi6yeGmBJd2xsPkFMs0PzgPCw==
 
-"@mhio/exception@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.npmjs.org/@mhio/exception/-/exception-0.2.1.tgz#054c27f09bb7bb1d48461ab707a931873e12f9d9"
-  integrity sha512-nhdUeHjIV8SwQXHucQHXjIltt8Cndw9iNiyejdAcPtZKro6W8MYbdOxdz9Q+T+yWntC9ub7rRMWDcao5sBpbDw==
-
 "@mhio/taxios@^0.1.0":
   version "0.1.0"
   resolved "https://registry.npmjs.org/@mhio/taxios/-/taxios-0.1.0.tgz#382fd23c7d54ca9b8fc6ca4646035a46df2c9791"
