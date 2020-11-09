@@ -1,5 +1,5 @@
 {
-  "name": "node-koa-generic-handle",
+  "name": "@mhio/koa-generic-handle",
   "version": "0.1.0",
   "main": "src/index.js",
   "author": "mhio <code@mhio.dev>",
