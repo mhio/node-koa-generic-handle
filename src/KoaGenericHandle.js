@@ -1,9 +1,6 @@
 const debug = require('debug')('mh:KoaGenericHandle')
 const base62 = require('base62-random')
 const Flatted = require('flatted')
-const { Exception } = require('@mhio/exception')
-
-class KoaGenericHandleException extends Exception {}
 
 /** 
   Handle API requests and errors in Koa apps in a standard way. 
@@ -156,12 +153,11 @@ class KoaGenericHandle {
   }
 
   constructor(){
-    throw new KoaGenericHandleException('No class instances for you!')
+    throw new Error('No class instances for you!')
   }
 
 }
 
 module.exports = {
   KoaGenericHandle,
-  KoaGenericHandleException,
 }

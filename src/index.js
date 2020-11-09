@@ -1,9 +1,7 @@
 const {
-  KoaApiGenericHandle,
-  KoaApiGenericException,
-} = require('./KoaApiGeneric')
+  KoaGenericHandle,
+} = require('./KoaGenericHandle')
 
 module.exports = {
-  KoaApiGenericHandle,
-  KoaApiGenericException,
+  KoaGenericHandle,
 }
