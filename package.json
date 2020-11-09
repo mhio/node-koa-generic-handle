@@ -9,6 +9,7 @@
     "chai": "^4.2.0",
     "chai-subset": "^1.6.0",
     "eslint": "^7.13.0",
+    "jsdoc": "^3.6.6",
     "koa": "^2.13.0",
     "mocha": "^8.2.1",
     "nyc": "^15.1.0"
@@ -17,6 +18,7 @@
     "@mhio/exception": "^0.2.1",
     "base62-random": "^0.3.5",
     "flatted": "^3.1.0",
+    "jsdoc-to-markdown": "^6.0.1",
     "pino-std-serializers": "^2.5.0",
     "supertest": "^6.0.1"
   },
