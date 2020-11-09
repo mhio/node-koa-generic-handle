@@ -2,7 +2,6 @@
 const supertest = require('supertest')
 const http = require('http')
 const Koa = require('koa')
-const { Exception } = require('@mhio/exception')
 
 const { KoaGenericHandle } = require('../../src/KoaGenericHandle')
 
@@ -24,7 +23,6 @@ describe('mh::test::int::KoaGenericHandle', function(){
   })
 
   it('should handle koa tracking', async function(){
-    let o = { ok: ()=> Promise.resolve('ok') }
     app.use(KoaGenericHandle.tracking())
     app.use(ctx => ctx.body = 'aok')
     let res = await request.get('/ok')
@@ -36,7 +34,6 @@ describe('mh::test::int::KoaGenericHandle', function(){
   })
 
   it('should handle an incomingt x-transaction-id if trusted', async function(){
-    let o = { ok: ()=> Promise.resolve('ok') }
     app.use(KoaGenericHandle.tracking({ transaction_trust: true }))
     app.use(ctx => ctx.body = 'aok')
     let res = await request.get('/ok').set('x-transaction-id', 'wakka')
@@ -49,7 +46,6 @@ describe('mh::test::int::KoaGenericHandle', function(){
   })
 
   it('should handle an incomingt x-transaction-id if ip is trusted', async function(){
-    let o = { ok: ()=> Promise.resolve('ok') }
     app.use(KoaGenericHandle.tracking({ transaction_trust: 'ip', transaction_trust_ips: ['::ffff:127.0.0.1', '127.0.0.1', '::1'] }))
     app.use(ctx => ctx.body = 'aok')
     let res = await request.get('/ok').set('x-transaction-id', 'wakka')
@@ -61,7 +57,6 @@ describe('mh::test::int::KoaGenericHandle', function(){
     expect( res.headers['x-transaction-id'] ).to.equal('wakka')
   })
   it('should handle an incomingt x-transaction-id if ip is not trusted', async function(){
-    let o = { ok: ()=> Promise.resolve('ok') }
     app.use(KoaGenericHandle.tracking({ transaction_trust: 'ip', transaction_trust_ips: ['8.8.8.8'] }))
     app.use(ctx => ctx.body = 'aok')
     let res = await request.get('/ok').set('x-transaction-id', 'wakka')
