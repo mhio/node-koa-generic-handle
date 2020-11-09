@@ -7,6 +7,9 @@ const Flatted = require('flatted')
 */
 class KoaGenericHandle {
 
+  static getRandomBase62String(n){
+    return base62(n)
+  }
   /**
    * @summary Request tracking
 

@@ -22,6 +22,10 @@ describe('mh::test::int::KoaGenericHandle', function(){
     server.close(done)
   })
 
+  it('should gget a random string', function(){
+    expect( KoaGenericHandle.getRandomBase62String(5) ).to.match(/^[0-9a-zA-Z]{5}$/)
+  })
+
   it('should handle koa tracking', async function(){
     app.use(KoaGenericHandle.tracking())
     app.use(ctx => ctx.body = 'aok')
