@@ -1,9 +1,11 @@
 /* global expect */
-const supertest = require('supertest')
-const http = require('http')
-const Koa = require('koa')
+import supertest from 'supertest'
+import http from 'http'
+import Koa from 'koa'
 
-const { KoaGenericHandle } = require('../../src/KoaGenericHandle')
+import { KoaGenericHandle } from '../../src/index.js'
+import { MemoryStream } from '../fixture/helpers.js'
+import pino from 'pino'
 
 
 describe('mh::test::int::KoaGenericHandle', function(){
@@ -37,7 +39,7 @@ describe('mh::test::int::KoaGenericHandle', function(){
     ])
   })
 
-  it('should handle an incomingt x-transaction-id if trusted', async function(){
+  it('should handle an incoming x-transaction-id if trusted', async function(){
     app.use(KoaGenericHandle.tracking({ transaction_trust: true }))
     app.use(ctx => ctx.body = 'aok')
     let res = await request.get('/ok').set('x-transaction-id', 'wakka')
@@ -49,7 +51,7 @@ describe('mh::test::int::KoaGenericHandle', function(){
     expect( res.headers['x-transaction-id'] ).to.equal('wakka')
   })
 
-  it('should handle an incomingt x-transaction-id if ip is trusted', async function(){
+  it('should handle an incoming x-transaction-id if ip is trusted', async function(){
     app.use(KoaGenericHandle.tracking({ transaction_trust: 'ip', transaction_trust_ips: ['::ffff:127.0.0.1', '127.0.0.1', '::1'] }))
     app.use(ctx => ctx.body = 'aok')
     let res = await request.get('/ok').set('x-transaction-id', 'wakka')
@@ -60,7 +62,7 @@ describe('mh::test::int::KoaGenericHandle', function(){
     ])
     expect( res.headers['x-transaction-id'] ).to.equal('wakka')
   })
-  it('should handle an incomingt x-transaction-id if ip is not trusted', async function(){
+  it('should handle an incoming x-transaction-id if ip is not trusted', async function(){
     app.use(KoaGenericHandle.tracking({ transaction_trust: 'ip', transaction_trust_ips: ['8.8.8.8'] }))
     app.use(ctx => ctx.body = 'aok')
     let res = await request.get('/ok').set('x-transaction-id', 'wakka')
@@ -83,32 +85,40 @@ describe('mh::test::int::KoaGenericHandle', function(){
 
   describe('logging', function(){
     it('should run a logger', async function(){
-      const logs = []
-      app.use(KoaGenericHandle.logging({ logger: { info: obj => logs.push(obj) }}))
-      app.use(ctx => ctx.body = 'response')
+      const mem = new MemoryStream()
+      const logger = pino(mem)
+      app.use(KoaGenericHandle.logging({ logger }))
+      app.use(ctx => { ctx.body = 'response' })
       await request.get('/request')
-      expect(logs[0]).to.containSubset({
-        req: {
-          headers: {},
-          method: 'GET',
-          url: '/request',
+      expect(mem.logs[0]).to.containSubset({ req: {}, res: {} })
+      expect(mem.logs[0].req, 'req').to.containSubset({
+        headers: {},
+        method: 'GET',
+        url: '/request',
+      })
+      expect(mem.logs[0].res, 'res').to.containSubset({
+        headers: {
+          'content-length': '8',
+          'content-type': 'text/plain; charset=utf-8'
         },
-        res: {
-          headers: {},
-          statusCode: 200,
-        }
+        statusCode: 200,
       })
     })
+
     it('should run a logger on error', async function(){
-      const logs = []
-      app.use(KoaGenericHandle.logging({ logger: { info: obj => logs.push(obj) }}))
+      const mem = new MemoryStream()
+      const logger = pino(mem)
+      app.use(KoaGenericHandle.logging({ logger }))
       app.use(() => {
         const err = new Error('nope')
         err.code = 'wat'
         throw err
       })
       await request.get('/error')
-      expect(logs[0]).to.containSubset({
+      expect(mem.logs[0]).to.containSubset({
+        err: { message: 'nope', code: 'wat' }
+      })
+      expect(mem.logs[1]).to.containSubset({
         req: {
           headers: {},
           method: 'GET',
@@ -117,7 +127,6 @@ describe('mh::test::int::KoaGenericHandle', function(){
         res: {
           headers: {},
         },
-        error: { message: 'nope', code: 'wat' }
       })
     })
     it('should run a logger on error', async function(){
@@ -138,4 +147,18 @@ describe('mh::test::int::KoaGenericHandle', function(){
       expect(res.headers).to.containSubset({ 'x-powered-by': 'test' })
     })
   })
+
+  describe('logging & tracking', function(){
+    it('should log the request id', async function(){
+      const mem = new MemoryStream()
+      const logger = pino(mem)
+      app.use(KoaGenericHandle.tracking())
+      app.use(KoaGenericHandle.logging({ logger }))
+      app.use(ctx => { ctx.body = 'response' })
+      const res = await request.get('/request')
+      expect(mem.logs[0]).to.containSubset({ req: {}, res: {} })
+      expect(mem.logs[0].reqId,).to.equal(res.headers['x-request-id'])
+    })
+  })
+
 })

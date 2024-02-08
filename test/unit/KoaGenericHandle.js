@@ -1,6 +1,7 @@
 /* global expect */
 
-const { KoaGenericHandle } = require('../../src/KoaGenericHandle')
+import { KoaGenericHandle } from '../../src/KoaGenericHandle.js'
+import { mockPino } from '../fixture/helpers.js'
 
 describe('mh::test::unit::KoaGenericHandle', function(){
 
@@ -21,34 +22,15 @@ describe('mh::test::unit::KoaGenericHandle', function(){
     expect( KoaGenericHandle.logging() ).to.be.a('function')
   })
 
-  it('should servive a logging error and dump it to stderr', async function(){
-    const logmw = KoaGenericHandle.logging({ logger: {
+  it('should survive a logging error and dump it to stderr', async function(){
+    const logger = mockPino({
       info: () => { throw new Error('logbad') }
-    }})
-    const ctx = { req: {}, res: {} }
+    })
+    const logmw = KoaGenericHandle.logging({ logger })
+    const ctx = { req: {}, request: {}, res: { on(){} }, response: {} }
     const next = () => Promise.resolve(true)
     const res = await logmw(ctx, next)
-    expect(res).to.be.undefined
-  })
-
-  describe('reset debug', function(){
-
-    let debug_state = null 
-    before(function(){
-      debug_state = KoaGenericHandle.debug.enabled
-    })
-    after(function(){
-      KoaGenericHandle.debug.enabled = debug_state
-    })
-
-    it('should enable debug', function(){
-      expect( KoaGenericHandle.enableDebug() ).to.be.ok
-    })
-
-    it('should disalbe debug', function(){
-      expect( KoaGenericHandle.disableDebug() ).to.be.ok
-    })
-
+    expect(res).to.equal(true)
   })
 
 })

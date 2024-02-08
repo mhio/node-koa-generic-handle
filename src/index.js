@@ -1,7 +1,1 @@
-const {
-  KoaGenericHandle,
-} = require('./KoaGenericHandle')
-
-module.exports = {
-  KoaGenericHandle,
-}
+export * from './KoaGenericHandle.js'

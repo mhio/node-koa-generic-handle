@@ -1,16 +1,14 @@
-/* global chai */
-global.chai = require('chai')
-global.expect = chai.expect
-//chai.use(require('chai-fs'))
-chai.use(require('chai-subset'))
-//chai.use(require('chai-as-promised'))
+import { expect, use, config } from 'chai'
+//import chaiFs from 'chai-fs')
+import chaiSubset from 'chai-subset'
+//import chaiAsPromised from 'chai-as-promised')
 
-//require('source-map-support').install()
+config.truncateThreshold = 0
 
-//require('bluebird').config({
-//  longStackTraces: true,
-//  warnings: true
-//})
+global.expect = expect
+//use(chaiFs)
+use(chaiSubset)
+//use(chaiAsPromised)
 
 if ( process.env.NODE_ENV === undefined ) {
   process.env.NODE_ENV = 'test'

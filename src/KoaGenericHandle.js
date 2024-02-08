@@ -1,21 +1,23 @@
-const debug = require('debug')('mh:KoaGenericHandle')
-const base62 = require('base62-random')
-const Flatted = require('flatted')
+import debugi from 'debug'
+import base62 from 'base62-random'
+import pinoHttp from 'pino-http'
+
+const debug = debugi('mh:KoaGenericHandle')
 
 /** 
   Handle API requests and errors in Koa apps in a standard way. 
 */
-class KoaGenericHandle {
+export class KoaGenericHandle {
 
   static getRandomBase62String(n){
     return base62(n)
   }
+
   /**
    * @summary Request tracking
 
-   * @descrtracking
    * @description `.tracking` provides a request and transaction ID's and a response time header.
-   *              Attaches `request_id`, `trasaction_id`, `request_start`, `request_total`, to `ctx.state`
+   *              Attaches `request_id`, `transaction_id`, `request_start`, `request_total`, to `ctx.state`
    * @param {object}         options                        - The options for the logger  
    * @param {boolean|string} options.transaction_trust      - Trust the clients `x-transaction-id` header. (true/false/'ip')
    * @param {array}          options.transaction_trust_ips  - List of IP's to trust the clients `x-transaction-id` header from.
@@ -81,7 +83,7 @@ class KoaGenericHandle {
   }
 
   /**
-   * @summary Powered by heade
+   * @summary Powered by header
    * @description tracking
    * @description `.poweredBy` sets the x-powered-by header to something other than koa.
    * @param {string}         powered_by                      - The string to set it to  
@@ -98,69 +100,42 @@ class KoaGenericHandle {
    * @description logging
    * @description `.logging` attached a pino log instance to ctx.
    * @param {object}         options                      - Options object
-   * @param {object}         options.logger               - A pino instance to inject
-   * @param {object}         options.log_level            - The log level to use for requests
+   * @param {object}         options.logger?: pino.Logger<CustomLevels> | undefined;
+   * @param {object}         options.genReqId?: GenReqId<IM, SR> | undefined;
+   * @param {object}         options.useLevel?: pino.LevelWithSilent | undefined;
+   * @param {object}         options.stream?: pino.DestinationStream | undefined;
+   * @param {object}         options.autoLogging?: boolean | AutoLoggingOptions<IM> | undefined;
+   * @param {object}         options.customLogLevel?: ((req: IM, res: SR, error?: Error) => pino.LevelWithSilent) | undefined;
+   * @param {object}         options.customReceivedMessage?: ((req: IM, res: SR) => string) | undefined;
+   * @param {object}         options.customSuccessMessage?: ((req: IM, res: SR, responseTime: number) => string) | undefined;
+   * @param {object}         options.customErrorMessage?: ((req: IM, res: SR, error: Error) => string) | undefined;
+   * @param {object}         options.customReceivedObject?: ((req: IM, res: SR, val?: any) => any) | undefined;
+   * @param {object}         options.customSuccessObject?: ((req: IM, res: SR, val: any) => any) | undefined;
+   * @param {object}         options.customErrorObject?: ((req: IM, res: SR, error: Error, val: any) => any) | undefined;
+   * @param {object}         options.customAttributeKeys?: CustomAttributeKeys | undefined;
+   * @param {object}         options.wrapSerializers?: boolean | undefined;
+   * @param {object}         options.customProps?: ((req: IM, res: SR) => object) | undefined;
+   * @param {object}         options.quietReqLogger?: boolean | undefined;
    */
   static logging(options = {}){
-    const { mapHttpRequest, mapHttpResponse } = require('pino-std-serializers')
-    const logger = (options.logger) ? options.logger : console
-    const log_level = (options.log_level) ? options.log_level : 'info'
-    if (typeof logger[log_level] !== 'function') {
-      throw Error(`KoaGenericHandle.logging logger['log_level'] is not a function: ${typeof logger.info}`)
+    const wrap = pinoHttp({
+      quietReqLogger: true,
+      ...options,
+    })
+    function logging(ctx, next) {
+      wrap(ctx.req, ctx.res)
+      ctx.log = ctx.request.log = ctx.response.log = ctx.req.log
+      return next().catch(function (err) {
+        ctx.log.error({ err })
+        throw err
+      })
     }
-    return async function logging(ctx, next){
-      let outer_error
-      try {
-        ctx.log = logger
-        await next()
-      }
-      catch (error) {
-        outer_error = error
-        throw error
-      } 
-      finally {
-        let log_obj
-        try {
-          log_obj = {
-            ...mapHttpRequest(ctx.req),
-            ...mapHttpResponse(ctx.res),
-          }
-          if (outer_error) {
-            log_obj.error = Flatted.parse(Flatted.stringify(outer_error))
-            log_obj.error.message = outer_error.message 
-            log_obj.error.stack = outer_error.stack 
-          }
-          logger[log_level](log_obj)
-        } catch (logger_error) {
-          console.error('logger failed to log with error:', logger_error) 
-          console.error('logger failed entry [%s]:', log_level, log_obj, outer_error) 
-        }
-      }
-    }
-  }
-
-  static get debug(){
-    return debug
-  }
-
-  static enableDebug(){
-    // debugl.enabled = true
-    // debug = debugl
-    return true
-  }
-
-  static disableDebug(){
-    // debugl.enabled = false
-    // debug = noop
-    return true
+    logging.logger = wrap.logger
+    return logging
   }
 
   constructor(){
     throw new Error('No class instances for you!')
   }
 
-}
-
-module.exports = {
-  KoaGenericHandle,
 }
